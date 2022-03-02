@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Tema Cloud</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+</head>
+<body>
+    <a href="/metrics" class="metrics">Go to Metrics</a>
+    <div class="requestImage">
+        <button id="request" class="button-22" role="button">Make the request!</button>
+        <img id="combinedImg" src="">
+    </div>
+    <script>
+        image = document.getElementById("combinedImg")
+        document.getElementById("request").onclick = () => {
+            fetch("/api")
+            .then(response => response.json())
+            .then(data => data["status"] == "success"? image.src = data["combined_path"] : console.log(data))
+        }
+    </script>
+</body>
+</html>

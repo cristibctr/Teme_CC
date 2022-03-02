@@ -1,0 +1,32 @@
+body{
+    margin: 0;
+    font-family: sans-serif;
+}
+
+a:link, a:visited {
+    background-color: #3678f4;
+    color: white;
+    padding: 14px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+  
+a:hover, a:active {
+    background-color: #0c60fa;
+}
+
+.home{
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.charts{
+    display: flex;
+    flex-wrap: wrap;
+}
+.charts > div{
+    max-width: fit-content;
+}

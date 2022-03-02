@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Tema Cloud</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel='stylesheet' type='text/css' media='screen' href='metrics.css'>
+</head>
+<body>
+    <a href="/" class="home">Home</a>
+    <div class="charts">
+        <div class="lineChart">
+            <canvas id="myLineChart" width="400" height="400"></canvas>
+        </div>
+        <div class="barChart">
+            <canvas id="myBarChart" width="400" height="400"></canvas>
+        </div>
+        <div class="areaChart">
+            <canvas id="myAreaChart" width="1000" height="400"></canvas>
+        </div>
+    </div>
+    <script>
+
+        var labels = [
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+        ];
+
+        const CHART_COLORS = {
+            red: 'rgba(255, 99, 132, 0.5)',
+            orange: 'rgba(255, 159, 64, 0.5)',
+            yellow: 'rgba(255, 205, 86, 0.5)',
+            green: 'rgba(75, 192, 192, 0.5)',
+            blue: 'rgba(54, 162, 235, 0.5)',
+            purple: 'rgba(153, 102, 255, 0.5)',
+            grey: 'rgba(201, 203, 207, 0.5)'
+        };
+
+        const ctx1 = document.getElementById('myLineChart').getContext('2d');
+        const ctx2 = document.getElementById('myBarChart').getContext('2d');
+        const ctx3 = document.getElementById('myAreaChart').getContext('2d');
+
+        var dataLine = {
+            labels: labels,
+            datasets: [{
+                label: 'Requests',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: [0, 10, 5, 2, 20, 30, 45],
+            }]
+        };
+
+        const lineConfig = {
+            type: 'line',
+            data: dataLine,
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Average Requests/Hour',
+                    }
+                }
+            }
+        };
+
+        var dataBars = {
+            labels: labels,
+            datasets: [{
+                label: 'Response Time',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: [0, 10, 5, 2, 20, 30, 45],
+            }]
+        };
+
+        const barConfig = {
+            type: 'bar',
+            data: dataBars,
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Average API Response Time',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            },
+        };
+
+        var dataArea = {
+            labels: labels,
+            datasets: [{
+                label: 'ds1',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: [0, 10, 5, 2, 20, 30, 45],
+            }]
+        };
+
+        const areaConfig = {
+            type: 'line',
+            data: dataArea,
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Errors/Hour for each API',
+                    },
+                    filler: {
+                        propagate: false,
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                },
+            },
+        };
+
+        const myLineChart = new Chart(ctx1, lineConfig);
+        const myBarChart = new Chart(ctx2, barConfig);
+        const myAreaChart = new Chart(ctx3, areaConfig);
+
+        async function fetchMetrics()
+        {
+            const response = await fetch("/api/metrics");
+            return response.json();
+        }
+
+        fetchMetrics().then(data => {
+            console.log(data)
+            lineLabels = Object.keys(data.req_per_hour)
+            dataPoints = Object.values(data.req_per_hour)
+            myLineChart.data.labels = lineLabels
+            myLineChart.data.datasets[0].data = dataPoints
+            myLineChart.update();
+            
+            barLabels = Object.keys(data.api_latency)
+            dataBars = Object.values(data.api_latency)
+            myBarChart.data.labels = barLabels
+            myBarChart.data.datasets[0].data = dataBars
+            myBarChart.update()
+
+            myAreaChart.data.labels = Object.keys(data.api_errors[Object.keys(data.api_errors)[0]])
+            var i = 0
+            colors = new Set()
+            for(site of Object.keys(data.api_errors))
+            {
+                color = CHART_COLORS[Object.keys(CHART_COLORS)[Math.floor(Math.random() * Object.keys(CHART_COLORS).length)]]
+                while(colors.has(color))
+                    color = CHART_COLORS[Object.keys(CHART_COLORS)[Math.floor(Math.random() * Object.keys(CHART_COLORS).length)]]
+                colors.add(color)
+                myAreaChart.data.datasets[i] = {
+                    label: site,
+                    backgroundColor: Array.from(colors)[colors.size - 1],
+                    borderColor: Array.from(colors)[colors.size - 1],
+                    data: Object.values(data.api_errors[site]),
+                    fill: 'start',
+                }
+                i++;
+            }
+            myAreaChart.options.elements.line.tension = 0.4;
+            myAreaChart.update()
+        })
+
+    </script>
+</body>
+</html>
