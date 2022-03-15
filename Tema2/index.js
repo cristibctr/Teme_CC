@@ -18,7 +18,8 @@ const server = http.createServer((req, res) => {
             "PUT": appsPUT,
             "DELETE": appsDELETE,
             "POST": appsPOST,
-            "OPTIONS": OPTIONS
+            "OPTIONS": OPTIONS,
+            "PATCH": appsPATCH
         }
         if(req.method in methods)
             methods[req.method](res, req, appNr, methods);
@@ -34,7 +35,8 @@ const server = http.createServer((req, res) => {
             "GET": appsIdGET,
             "PUT": appsIdPUT,
             "DELETE": appsIdDELETE,
-            "OPTIONS": OPTIONS
+            "OPTIONS": OPTIONS,
+            "PATCH": appsIdPATCH
         }
         console.log(req.method)
         if(req.method in methods)
@@ -78,55 +80,62 @@ function appsIdPUT(res, req, appNr, methods = {}){
         app = JSON.parse(data)
         if (typeof app === 'object' && !Array.isArray(app) && app !== null && app.name !== undefined && app.version !== undefined && app.company !== undefined)
         {
-            db.get('SELECT * FROM applications WHERE name = ?', [app.name], (err, row) => {
-                if(err){
-                    console.log(err.message)
-                }
-                if(row != undefined && row.id != appNr)
-                {
-                    res.writeHead(409, {'Content-Type': 'application/json'});
-                    res.end(`{"field" : "name", "message" : "duplicate"}`)
+            db.get('SELECT * FROM applications WHERE id = ?', [appNr], (err, row) => {
+                if(row == undefined){
+                    res.statusCode = 404
+                    res.end();
                     return
                 }
-                db.run("DELETE FROM applications WHERE id=?", [appNr], function(err) {
+                db.get('SELECT * FROM applications WHERE name = ?', [app.name], (err, row) => {
                     if(err){
                         console.log(err.message)
-                        res.statusCode = 500
-                        res.end()
-                        return
                     }
-                    if(this.changes == 0)
+                    if(row != undefined && row.id != appNr)
                     {
-                        res.statusCode = 404
-                        res.end()
+                        res.writeHead(409, {'Content-Type': 'application/json'});
+                        res.end(`{"field" : "name", "message" : "duplicate"}`)
                         return
                     }
-                    var query = `INSERT INTO applications (id, name, version, company
-                        ${"app_hash" in app ? ', app_hash' : ''}
-                        ${"includes_ads" in app ? ', includes_ads' : ''}
-                        ${"downloads" in app ? ', downloads' : ''}) VALUES ( ?, ?, ?, ?
-                        ${"app_hash" in app ? ', ?' : ''}
-                        ${"includes_ads" in app ? ', ?' : ''}
-                        ${"downloads" in app ? ', ?' : ''})`
-                    var queryArr = [appNr, app.name, app.version, app.company, app.app_hash, app.includes_ads, app.downloads]
-                    queryArr = queryArr.filter(function( element ) {
-                        return element !== undefined;
-                        });
-                    db.run(query, queryArr, (err) => {
+                    db.run("DELETE FROM applications WHERE id=?", [appNr], function(err) {
                         if(err){
-                            if(err.message.includes("UNIQUE"))
-                            {
-                                res.writeHead(409, {'Content-Type': 'application/json'});
-                                res.end(`{"field" : "name", "message" : "duplicate"}`)
-                                return
-                            }
                             console.log(err.message)
                             res.statusCode = 500
                             res.end()
                             return
                         }
-                        res.statusCode = 200
-                        res.end()
+                        if(this.changes == 0)
+                        {
+                            res.statusCode = 404
+                            res.end()
+                            return
+                        }
+                        var query = `INSERT INTO applications (id, name, version, company
+                            ${"app_hash" in app ? ', app_hash' : ''}
+                            ${"includes_ads" in app ? ', includes_ads' : ''}
+                            ${"downloads" in app ? ', downloads' : ''}) VALUES ( ?, ?, ?, ?
+                            ${"app_hash" in app ? ', ?' : ''}
+                            ${"includes_ads" in app ? ', ?' : ''}
+                            ${"downloads" in app ? ', ?' : ''})`
+                        var queryArr = [appNr, app.name, app.version, app.company, app.app_hash, app.includes_ads, app.downloads]
+                        queryArr = queryArr.filter(function( element ) {
+                            return element !== undefined;
+                            });
+                        db.run(query, queryArr, (err) => {
+                            if(err){
+                                if(err.message.includes("UNIQUE"))
+                                {
+                                    res.writeHead(409, {'Content-Type': 'application/json'});
+                                    res.end(`{"field" : "name", "message" : "duplicate"}`)
+                                    return
+                                }
+                                console.log(err.message)
+                                res.statusCode = 500
+                                res.end()
+                                return
+                            }
+                            res.statusCode = 200
+                            res.end()
+                        })
                     })
                 })
             })
@@ -139,15 +148,67 @@ function appsIdPUT(res, req, appNr, methods = {}){
 }
 
 function appsIdDELETE(res, req, appNr, methods = {}){
-    db.run(`DELETE FROM applications WHERE id=?`, [appNr], (err) =>{
-        if(err){
-            console.log(err.message)
-            res.statusCode = 500
-            res.end()
+    db.get('SELECT * FROM applications WHERE id = ?', [appNr], (err, row) => {
+        if(row == undefined){
+            res.statusCode = 404
+            res.end();
             return
         }
-        res.statusCode = 200
-        res.end()
+        db.run(`DELETE FROM applications WHERE id=?`, [appNr], (err) =>{
+            if(err){
+                console.log(err.message)
+                res.statusCode = 500
+                res.end()
+                return
+            }
+            res.statusCode = 200
+            res.end()
+        })
+    })
+}
+
+function appsIdPATCH(res, req, appNr, methods = {}){
+    var data = ''
+    req.on('data', (chunk) => {
+        data += chunk
+    })
+    req.on('end', () => {
+        app = JSON.parse(data)
+        if (typeof app === 'object' && !Array.isArray(app) && app !== null)
+        {
+            db.get('SELECT * FROM applications WHERE id = ?', [appNr], (err, row) => {
+                if(row == undefined){
+                    res.statusCode = 404
+                    res.end();
+                    return
+                }
+                var query = `UPDATE applications SET id = ?
+                ${"name" in app ? ', name = ?' : ''}
+                ${"version" in app ? ', version = ?' : ''}
+                ${"company" in app ? ', company = ?' : ''}
+                ${"app_hash" in app ? ', app_hash = ?' : ''}
+                ${"includes_ads" in app ? ', includes_ads = ?' : ''}
+                ${"downloads" in app ? ', downloads = ?' : ''} WHERE id = ?`
+                var queryArr = [appNr, app.name, app.version, app.company, app.app_hash, app.includes_ads, app.downloads, appNr]
+                queryArr = queryArr.filter(function( element ) {
+                        return element !== undefined;
+                        });
+                db.run(query, queryArr, (err) => {
+                    if(err){
+                        console.log(err.message)
+                        res.statusCode = 500
+                        res.end()
+                        return
+                    }
+                    res.statusCode = 200
+                    res.end()
+                })
+            })
+        }
+        else{
+            res.writeHead(400, {'Content-Type': 'text/html'});
+            res.end(`wrong format`)
+        }
     })
 }
 
@@ -256,13 +317,15 @@ function appsPUT(res, req, appNr, methods){
             })
             for(var app of apps){
                 var query = `INSERT INTO applications (name, version, company
+                    ${"id" in app ? ', id' : ''}
                     ${"app_hash" in app ? ', app_hash' : ''}
                     ${"includes_ads" in app ? ', includes_ads' : ''}
                     ${"downloads" in app ? ', downloads' : ''}) VALUES (?, ?, ?
+                    ${"id" in app ? ', ?' : ''}
                     ${"app_hash" in app ? ', ?' : ''}
                     ${"includes_ads" in app ? ', ?' : ''}
                     ${"downloads" in app ? ', ?' : ''})`
-                var queryArr = [app.name, app.version, app.company, app.app_hash, app.includes_ads, app.downloads]
+                var queryArr = [app.name, app.version, app.company, app.id, app.app_hash, app.includes_ads, app.downloads]
                 queryArr = queryArr.filter(function( element ) {
                         return element !== undefined;
                         });
@@ -292,6 +355,54 @@ function appsDELETE(res, req, appNr, methods){
         res.statusCode = 200
         res.end()
     })
+}
+
+function appsPATCH(res, req, appNr, methods){
+    var data = ''
+    req.on('data', (chunk) => {
+        data += chunk
+    })
+    req.on('end', () => {
+        apps = JSON.parse(data)
+        if(!Array.isArray(apps))
+        {
+            res.writeHead(400, {'Content-Type': 'text/html'});
+            res.end(`wrong format`)
+            return
+        }
+        for(var app of apps){
+            if(app.id == undefined)
+            {
+                console.log(app)
+                res.writeHead(400, {'Content-Type': 'text/html'});
+                res.end(`wrong format`)
+                return
+            }
+        }
+        for(var app of apps){
+            var query = `UPDATE applications SET id = ?
+                ${"name" in app ? ', name = ?' : ''}
+                ${"version" in app ? ', version = ?' : ''}
+                ${"company" in app ? ', company = ?' : ''}
+                ${"app_hash" in app ? ', app_hash = ?' : ''}
+                ${"includes_ads" in app ? ', includes_ads = ?' : ''}
+                ${"downloads" in app ? ', downloads = ?' : ''} WHERE id = ?`
+            var queryArr = [app.id, app.name, app.version, app.company, app.app_hash, app.includes_ads, app.downloads, app.id]
+            queryArr = queryArr.filter(function( element ) {
+                    return element !== undefined;
+                    });
+            db.run(query, queryArr, (err) => {
+                if(err){
+                    console.log(err.message)
+                    res.statusCode = 500
+                    res.end()
+                    return
+                }
+            })
+        }
+        res.statusCode = 200
+        res.end()
+    });
 }
 
 server.listen(port, hostname, () => {

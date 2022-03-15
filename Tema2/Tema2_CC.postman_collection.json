@@ -200,6 +200,134 @@
 			"response": []
 		},
 		{
+			"name": "http://127.0.0.1:3000/api/apps",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"id\": \"1\",\r\n        \"name\": \"appName1\"\r\n    },\r\n    {\r\n        \"id\": \"2\",\r\n        \"version\": \"4.2.1\"\r\n    },\r\n    {\r\n        \"id\": \"5\",\r\n        \"company\": \"Unkown Company Inc.\"\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:3000/api/apps",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "127.0.0.1:3000/api/apps Copy 5",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true,
+					"accept": true,
+					"user-agent": true
+				},
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "127.0.0.1:3000/api/apps",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://127.0.0.1:3000/api/apps/3",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"app_hash\": \"B16B00B5\",\r\n    \"downloads\": \"300\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:3000/api/apps/3",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"apps",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://127.0.0.1:3000/api/apps/3",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:3000/api/apps/3",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"apps",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "127.0.0.1:3000/api/apps/2",
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
@@ -350,7 +478,7 @@
 					}
 				},
 				"url": {
-					"raw": "127.0.0.1:3000/api/apps/83",
+					"raw": "127.0.0.1:3000/api/apps/84",
 					"host": [
 						"127",
 						"0",
@@ -361,7 +489,7 @@
 					"path": [
 						"api",
 						"apps",
-						"83"
+						"84"
 					]
 				}
 			},
@@ -412,7 +540,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "127.0.0.1:3000/api/apps/1",
+					"raw": "127.0.0.1:3000/api/apps/5",
 					"host": [
 						"127",
 						"0",
@@ -423,7 +551,7 @@
 					"path": [
 						"api",
 						"apps",
-						"1"
+						"5"
 					]
 				}
 			},
