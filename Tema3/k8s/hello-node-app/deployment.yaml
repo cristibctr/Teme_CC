@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-hello-app
+  namespace: k8s-apps
+spec:
+  selector:
+    matchLabels:
+      app: node-hello-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: node-hello-app
+    spec:
+      containers:
+      - name: node-hello-app
+        image: us.gcr.io/warm-poetry-314721/node_hello_app@sha256:0c35f60ac3ba3ad6e32448a4aef9748b7992601e6f8d9a17deb07235cc185652
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80

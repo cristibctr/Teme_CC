@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anime-app
+  namespace: k8s-apps
+spec:
+  selector:
+    matchLabels:
+      app: anime-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: anime-app
+    spec:
+      containers:
+      - name: anime-app
+        image: us.gcr.io/warm-poetry-314721/anime-app@sha256:3972006471e8ce7a3baefc4e65c2c8db2135db59278621a9d5d861b217e0d7a3
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000

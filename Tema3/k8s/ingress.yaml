@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-node-app-ing
+  namespace: k8s-apps
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: reloadedd.me
+    # - host: "35.196.134.191.nip.io"
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: anime-app-svc
+                port:
+                  number: 3000
+          - pathType: Prefix
+            path: /v2
+            backend:
+              service:
+                name: node-hello-app-svc
+                port:
+                  number: 80
+  tls:
+    - hosts:
+      - reloadedd.me
+      secretName: gke-ingress-tls
